@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 719be1706c1b7cf0d2c21664122305b36ddfa925b42eeff904e7d47fc33d1a57
+-- hash: e95e1ad269b0265f939ef41ddaf15579a4e9e2d715f23ffb3a89bbe73d3f14e2
 
 name:           gameUI
 version:        0.1.0.0
@@ -36,6 +36,7 @@ library
       base >=4.7 && <5
     , linear
     , sdl2
+    , sdl2-image
   default-language: Haskell2010
 
 executable gameUI-exe
@@ -50,6 +51,7 @@ executable gameUI-exe
     , gameUI
     , linear
     , sdl2
+    , sdl2-image
   default-language: Haskell2010
 
 test-suite gameUI-test
@@ -65,4 +67,5 @@ test-suite gameUI-test
     , gameUI
     , linear
     , sdl2
+    , sdl2-image
   default-language: Haskell2010

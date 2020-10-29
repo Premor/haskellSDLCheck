@@ -23,6 +23,7 @@ dependencies:
 - base >= 4.7 && < 5
 - sdl2
 - linear
+- sdl2-image
 
 library:
   source-dirs: src
