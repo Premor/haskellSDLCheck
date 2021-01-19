@@ -4,8 +4,11 @@ module Main where
 import SDL
 import SDL.Image
 import Linear ()
-import Control.Monad (unless)
+import Control.Monad (unless,when)
 import Foreign.C.Types ( CInt )
+import Logic
+import Data.Maybe ( fromJust )
+
 main :: IO ()
 main = do
   initializeAll
@@ -16,44 +19,24 @@ main = do
 
 startPrep renderer = do
     texture <- getRock renderer
-    appLoop renderer [initPlayer texture]
+    appLoop renderer [Logic.initPlayer texture]
 
 
-data Player = Player  { getPlayerTexture :: Texture
-                      , getPlayerX :: CInt
-                      , getPlayerY :: CInt
-                      , getPlayerHeight :: CInt
-                      , getPlayerWeight :: CInt
-                      } 
 
 
-class Movable a where
-  move :: a -> CInt -> CInt -> a
+-- data Application = Application  { applicationWindow :: Window 
+--                                 , applicationRenderer :: Renderer
+--                                 ,
+-- }
 
-instance Movable Player where
-  move player x y = Player (getPlayerTexture player)
-                           (x + (getPlayerX player))
-                           (y + (getPlayerY player))
-                           (getPlayerHeight player)
-                           (getPlayerWeight player)
-                           
-                           
 
-class Renderable a where
-  getTexture :: a -> Texture
-  getRectangle :: a -> Rectangle CInt
 
-instance Renderable Player where
-  getTexture player = getPlayerTexture player 
-  getRectangle player = Rectangle (P $ V2 (getPlayerX player) (getPlayerY player)) 
-                                  (V2 (getPlayerHeight player) (getPlayerWeight player)) 
 
-initPlayer texture = Player texture 10 10 100 100 
 -- playerRect::Player -> Rectangle Int
 -- playerRect player = Rectangle (P $ V2 (getPlayerX player) (getPlayerY player)) 
 --                               (V2 (getPlayerHeight player) (getPlayerWeight player)) 
 
-appLoop ::(Renderable a, Movable a) => Renderer -> [a] -> IO ()
+appLoop ::Renderer -> [Object a] -> IO ()
 appLoop renderer objects = do
   events <- pollEvents
   let eventIsQPress event =
@@ -63,58 +46,50 @@ appLoop renderer objects = do
             keysymKeycode (keyboardEventKeysym keyboardEvent) == KeycodeQ
           _ -> False
       qPressed = any eventIsQPress events
-      eventIsWPress event =
-        case eventPayload event of
-          KeyboardEvent keyboardEvent ->
-            keyboardEventKeyMotion keyboardEvent == Pressed &&
-            keysymKeycode (keyboardEventKeysym keyboardEvent) == KeycodeW
-          _ -> False
-      eventIsAPress event =
-        case eventPayload event of
-          KeyboardEvent keyboardEvent ->
-            keyboardEventKeyMotion keyboardEvent == Pressed &&
-            keysymKeycode (keyboardEventKeysym keyboardEvent) == KeycodeA
-          _ -> False
-      eventIsSPress event =
-        case eventPayload event of
-          KeyboardEvent keyboardEvent ->
-            keyboardEventKeyMotion keyboardEvent == Pressed &&
-            keysymKeycode (keyboardEventKeysym keyboardEvent) == KeycodeS
-          _ -> False
-      eventIsDPress event =
-        case eventPayload event of
-          KeyboardEvent keyboardEvent ->
-            keyboardEventKeyMotion keyboardEvent == Pressed &&
-            keysymKeycode (keyboardEventKeysym keyboardEvent) == KeycodeD
-          _ -> False
-      deltaX = a + d 
-        where a = if any eventIsAPress events then -aceleration 
-                                   else 0
-              d = if any eventIsDPress events then aceleration 
-                                   else 0
-      deltaY = w + s 
-        where w = if any eventIsWPress events then -aceleration 
-                                   else 0
-              s = if any eventIsSPress events then aceleration 
-                                   else 0
-      
+         
   rendererDrawColor renderer $= V4 255 255 255 255
-  let newPlayer = move player deltaX deltaY
   clear renderer
-  --SDL.copy renderer (getTexture player) Nothing (Just $ getRectangle player)
-  mapM_ (copyToRender renderer) objects
+  renderBackground renderer
+  -- mapM_ (copyToRender renderer) objects
+  renderGUI renderer
   present renderer
-  unless qPressed (appLoop renderer [newPlayer])
+  unless qPressed (appLoop renderer objects)
   where
     aceleration = 5
     player = head objects
-    copyToRender:: Renderable a => Renderer -> a -> IO ()
+    copyToRender:: Renderer -> Object a -> IO ()
     copyToRender renderer object = SDL.copy renderer 
                                             (getTexture object) 
                                             Nothing
                                             (Just $ getRectangle object)  
 
 getRock:: Renderer -> IO Texture
-getRock renderer = do 
-  rockTexture <- loadTexture renderer "rock.png" -- /home/premor/Desktop/haskell/gameUI/
-  return rockTexture
+getRock renderer = do loadTexture renderer "rock.png" -- /home/premor/Desktop/haskell/gameUI/
+
+
+renderBackground :: Renderer -> IO ()
+renderBackground renderer = do
+    bgTexture <- loadTexture renderer "Background.jpg" 
+    SDL.copy renderer bgTexture Nothing Nothing
+
+renderGUI :: Renderer -> IO ()
+renderGUI renderer = do
+  -- let sizeVar = SDL.rendererLogicalSize renderer
+  displays <- SDL.getDisplays
+  -- print displays
+  let size = displayModeSize.head.displayModes.head $ displays  
+      
+  -- size <- get sizeVar
+  -- when (size /= Nothing) (do
+  renderExitButton renderer size
+  return () 
+    
+
+renderExitButton:: Renderer -> V2 CInt -> IO ()
+renderExitButton renderer rendererSize = do
+  buttonTexture <- loadTexture renderer "rock.png"
+  SDL.copy renderer buttonTexture Nothing $ Just $ Rectangle (P $ V2 200 200) (V2 w h)
+  return ()
+  where
+    h = getY rendererSize
+    w = getX rendererSize 

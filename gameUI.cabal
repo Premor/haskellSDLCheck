@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e95e1ad269b0265f939ef41ddaf15579a4e9e2d715f23ffb3a89bbe73d3f14e2
+-- hash: 7e984401bdcabbb0a08a1193182f84d6b91e0bed02bf61f54511b541bead2aef
 
 name:           gameUI
 version:        0.1.0.0
@@ -28,8 +28,9 @@ source-repository head
 library
   exposed-modules:
       Lib
+      Logic
   other-modules:
-      Paths_gameUI
+    Paths_gameUI
   hs-source-dirs:
       src
   build-depends:
@@ -42,7 +43,7 @@ library
 executable gameUI-exe
   main-is: Main.hs
   other-modules:
-      Paths_gameUI
+    Paths_gameUI  
   hs-source-dirs:
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
@@ -58,7 +59,7 @@ test-suite gameUI-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Paths_gameUI
+    Paths_gameUI
   hs-source-dirs:
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
