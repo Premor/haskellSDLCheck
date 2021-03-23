@@ -12,14 +12,14 @@ import Data.Maybe ( fromJust )
 main :: IO ()
 main = do
   initializeAll
-  window <- createWindow "My SDL Application" defaultWindow
+  window <- createWindow "My SDL Application" defaultWindow { windowInitialSize = V2 800 600 }
   renderer <- createRenderer window (-1) defaultRenderer
-  startPrep renderer
+  startPrep renderer window
   --appLoop renderer
 
-startPrep renderer = do
+startPrep renderer window = do
     texture <- getRock renderer
-    appLoop renderer [Logic.initPlayer texture]
+    appLoop renderer window [Logic.initPlayer texture]
 
 
 
@@ -36,8 +36,8 @@ startPrep renderer = do
 -- playerRect player = Rectangle (P $ V2 (getPlayerX player) (getPlayerY player)) 
 --                               (V2 (getPlayerHeight player) (getPlayerWeight player)) 
 
-appLoop ::Renderer -> [Object a] -> IO ()
-appLoop renderer objects = do
+appLoop ::Renderer -> Window -> [Object a] -> IO ()
+appLoop renderer window objects = do
   events <- pollEvents
   let eventIsQPress event =
         case eventPayload event of
@@ -49,11 +49,11 @@ appLoop renderer objects = do
          
   rendererDrawColor renderer $= V4 255 255 255 255
   clear renderer
-  renderBackground renderer
+  renderBackground renderer 
   -- mapM_ (copyToRender renderer) objects
-  renderGUI renderer
+  renderGUI renderer window
   present renderer
-  unless qPressed (appLoop renderer objects)
+  unless qPressed (appLoop renderer window objects)
   where
     aceleration = 5
     player = head objects
@@ -72,15 +72,9 @@ renderBackground renderer = do
     bgTexture <- loadTexture renderer "Background.jpg" 
     SDL.copy renderer bgTexture Nothing Nothing
 
-renderGUI :: Renderer -> IO ()
-renderGUI renderer = do
-  -- let sizeVar = SDL.rendererLogicalSize renderer
-  displays <- SDL.getDisplays
-  -- print displays
-  let size = displayModeSize.head.displayModes.head $ displays  
-      
-  -- size <- get sizeVar
-  -- when (size /= Nothing) (do
+renderGUI :: Renderer -> Window -> IO ()
+renderGUI renderer window = do
+  size <- get $ windowSize window 
   renderExitButton renderer size
   return () 
     
@@ -88,8 +82,10 @@ renderGUI renderer = do
 renderExitButton:: Renderer -> V2 CInt -> IO ()
 renderExitButton renderer rendererSize = do
   buttonTexture <- loadTexture renderer "rock.png"
-  SDL.copy renderer buttonTexture Nothing $ Just $ Rectangle (P $ V2 200 200) (V2 w h)
+  SDL.copy renderer buttonTexture Nothing $ Just $ Rectangle (P $ V2 x y) (V2 w h)
   return ()
   where
-    h = getY rendererSize
-    w = getX rendererSize 
+    h = 40
+    w = 100
+    x = getX rendererSize - w - 10
+    y = 0 -- getY rendererSize - h
